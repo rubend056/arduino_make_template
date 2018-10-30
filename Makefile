@@ -90,7 +90,7 @@ fuse:
 .PHONY: $(PRJ) # Because $(PRJ) has no output filename
 
 $(PRJ):
-	if ! [ -d "./$(BUILD_DIR)" ]; then mkdir $(BUILD_DIR); fi
-	./arduino-builder.sh $(FQBN) $(strip $(SRC_DIR))/$(SRCF) $(LIB_DIR) $(BUILD_DIR)
-	cp -f $(strip $(BUILD_DIR))/$(SRCH) $(SRCH)
+	@if ! [ -d "./$(BUILD_DIR)" ]; then mkdir $(BUILD_DIR); fi
+	@./arduino-builder.sh $(FQBN) $(strip $(SRC_DIR))/$(SRCF) $(LIB_DIR) $(BUILD_DIR)
+	@ cp -f $(strip $(BUILD_DIR))/$(SRCH) $(SRCH)
 

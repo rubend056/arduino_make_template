@@ -38,7 +38,7 @@ int main(void)
 	
 	init();
 
-	GTCCR |= (1 << PWM1B);
+	initVariant();
 
 #if defined(USBCON)
 	USBDevice.attach();
@@ -52,4 +52,13 @@ int main(void)
 	}
         
 	return 0;
+}
+void setup(){
+	SET_DDR(D,5); // Will set DDRD, bit 5 as output
+}
+void loop(){
+	delay(1000);
+	SET_PORT(D,5);
+	delay(1000);
+	CLR_PORT(D,5);
 }
