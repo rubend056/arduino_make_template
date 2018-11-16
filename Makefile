@@ -2,6 +2,25 @@
 ###############  BE EXTREMELY CAREFUL WITH THIS ################
 ###############  0 means ON, 1 means OFF        ################
 ###############  Definitely use the atmega datasheet ###########
+######## LOW
+#	7			Divide clock by 8	 			0
+#	6			Clock Output					1
+#	5			Startup Time 1					1
+#	4			Startup Time 0					0
+#	3			Clock Source 3					0
+#	2			Clock Source 2					0
+#	1			Clock Source 1					1
+#	0			Clock Source 0					0
+######## HIGH
+#	7			External Reset Disable 			1 (NEVER TURN ON)
+#	6			Debug Wire Enable				1 
+#	5			Serial, Data Downloading (SPI)	0
+#	4			Watchdog Timer Always ON 		1
+#	3			Enable EEPROM Preserve			1
+#	2			BootSize1						0
+#	1			BootSize0						0
+#	0			Select Reset Vector				1
+######## EXTENDED
 #	Bit			Description						Default
 #	7			None				 			1
 #	6			None							1
@@ -11,27 +30,23 @@
 #	2			BODL2							1
 #	1			BODL1							1
 #	0			BODL0							1
-EFU = $((2#11111111))
-#	7			External Reset Disable 			1 (NEVER TURN ON)
-#	6			Debug Wire Enable				1 
-#	5			Serial, Data Downloading (SPI)	0
-#	4			Watchdog Timer Always ON 		1
-#	3			Enable EEPROM Preserve			1
-#	2			BootSize1						0
-#	1			BootSize0						0
-#	0			Select Reset Vector				1
-HFU = $((2#11011001))
-#	7			Divide clock by 8	 			0
-#	6			Clock Output					1
-#	5			Startup Time 1					1
-#	4			Startup Time 0					0
-#	3			Clock Source 3					0
-#	2			Clock Source 2					0
-#	1			Clock Source 1					1
-#	0			Clock Source 0					0
-LFU = $((2#01100010))
-###########################################################
 
+
+#  ATMEGA328P Factory
+# LFU := 01100010
+# HFU := 11011001
+# EFU := 11111111
+#  ArduinoUno
+LFU := 11111111
+HFU := 11011110
+EFU := 00000101
+#  Custom
+# LFU := 10100010
+# HFU := 11011001
+# EFU := 11111111
+
+
+###########################################################
 
 PRJ = main #needs to be same name as the main cpp file
 
@@ -44,13 +59,17 @@ FQBN = arduino:avr:uno # So, vendor_name:architecture:boards.txt entry,
 
 ########   AVRDUDE
 MCU = atmega328p # The board the avrdude will be programming
-CLK = 16000000 # MCU clock frequency, for interfacing with the 
+# CLK = 16000000 # MCU clock frequency, for interfacing with the programmer
 PRG = arduino # avr programmer to use
 
 
 #################################################################################################
 # \/ stuff nobody needs to worry about until such time that worrying about it is appropriate \/ #
 #################################################################################################
+
+V_LFU := $(shell echo 'obase=16;ibase=2;$(LFU)'|bc)
+V_HFU := $(shell echo 'obase=16;ibase=2;$(HFU)'|bc)
+V_EFU := $(shell echo 'obase=16;ibase=2;$(EFU)'|bc)
 
 # Folders
 SRC_DIR = src
@@ -63,7 +82,7 @@ SRCH = $(strip $(SRCF)).hex
 
 
 # executables
-AVRDUDE = ./arduino/hardware/bin/avrdude -c $(PRG) -p $(MCU)
+AVRDUDE = avrdude -c $(PRG) -p $(MCU)
 # OBJCOPY = avr-objcopy
 # OBJDUMP = avr-objdump
 # SIZE    = avr-size --format=avr --mcu=$(MCU)
@@ -85,7 +104,7 @@ flash: all
 
 # write fuses to mcu
 fuse:
-	$(AVRDUDE) -U lfuse:w:$(LFU):m -U hfuse:w:$(HFU):m -U efuse:w:$(EFU):m
+	$(AVRDUDE) -U lfuse:w:0x$(V_LFU):m -U hfuse:w:0x$(V_HFU):m -U efuse:w:0x$(V_EFU):m
 
 .PHONY: $(PRJ) # Because $(PRJ) has no output filename
 
