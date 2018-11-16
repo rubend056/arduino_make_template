@@ -60,6 +60,7 @@ FQBN = arduino:avr:uno # So, vendor_name:architecture:boards.txt entry,
 ########   AVRDUDE
 MCU = atmega328p # The board the avrdude will be programming
 # CLK = 16000000 # MCU clock frequency, for interfacing with the programmer
+PORT = /dev/ttyUSB0
 PRG = arduino # avr programmer to use
 
 
@@ -82,7 +83,7 @@ SRCH = $(strip $(SRCF)).hex
 
 
 # executables
-AVRDUDE = avrdude -c $(PRG) -p $(MCU)
+AVRDUDE = avrdude -c $(PRG) -P $(PORT) -p $(MCU)
 # OBJCOPY = avr-objcopy
 # OBJDUMP = avr-objdump
 # SIZE    = avr-size --format=avr --mcu=$(MCU)
