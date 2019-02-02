@@ -4,36 +4,45 @@ menu.cpu=Processor
 
 ##############################################################
 
+factory328.name= Factory
+
+factory328.upload.tool=avrdude
+factory328.upload.protocol=usbasp
+factory328.upload.maximum_size=32256
+factory328.upload.maximum_data_size=2048
+factory328.upload.speed=97600
+
+factory328.build.mcu=atmega328p
+factory328.build.f_cpu=1000000L
+factory328.build.board=Factory
+factory328.build.core=arduino
+factory328.build.variant=standard
+
+##############################################################
+
 samn.name=SAMN Sensor Mesh
 
-samn.vid.0=0x2341
-samn.pid.0=0x0043
-samn.vid.1=0x2341
-samn.pid.1=0x0001
-samn.vid.2=0x2A03
-samn.pid.2=0x0043
-samn.vid.3=0x2341
-samn.pid.3=0x0243
-
 samn.upload.tool=avrdude
-samn.upload.protocol=arduino
+samn.upload.protocol=usbasp
 samn.upload.maximum_size=32256
 samn.upload.maximum_data_size=2048
 samn.upload.speed=115200
-
-samn.bootloader.tool=avrdude
-samn.bootloader.low_fuses=0xFF
-samn.bootloader.high_fuses=0xDE
-samn.bootloader.extended_fuses=0xFD
-samn.bootloader.unlock_bits=0x3F
-samn.bootloader.lock_bits=0x0F
-samn.bootloader.file=optiboot/optiboot_atmega328.hex
 
 samn.build.mcu=atmega328p
 samn.build.f_cpu=8000000L
 samn.build.board=AVR_SAMN
 samn.build.core=arduino
 samn.build.variant=standard
+
+##############################################################
+
+samnhq.name=Arduino/Genuino Mega or Mega 2560
+
+samnhq.build.f_cpu=16000000L
+samnhq.build.mcu=atmega2560
+samnhq.build.board=AVR_MEGA2560
+samnhq.build.core=arduino
+samnhq.build.variant=mega
 
 ##############################################################
 
