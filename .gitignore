@@ -1,3 +1,5 @@
 build
-*.sublime* 
-own_*
+ee.txt
+build*
+*.hex
+*.sublime*

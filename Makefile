@@ -63,7 +63,7 @@ endif
 FQBN = arduino:avr:$(BOARD) # So, vendor_name:architecture:boards.txt entry,
 
 export PWD = $(shell pwd)
-AVRDUDE = avrdude -v -v -p $(MCU)
+AVRDUDE = ./arduino/hardware/tools/avr/bin/avrdude -v -v -p $(MCU) -C ./arduino/hardware/tools/avr/etc/avrdude.conf
 
 
 
@@ -105,7 +105,7 @@ else ifeq ($(BOARD), samn)
 # SAMN
 LFU := 10111111 #Don't divide clock | Enable clock output | Use Low power Crystal oscillator
 HFU := 11010000 #Preserve EEPROM, call bootloader on start
-EFU := 11111110 #Enable BOD, V min 1.7, typ 1.8, max 2.0
+EFU := 11111101 #Enable BOD, V min 1.7, typ 1.8, max 2.0
 else ifeq ($(BOARD), samnhq)
 # SAMN HQ
 LFU := 11111111 
