@@ -4,6 +4,7 @@ curr=`pwd`
 ./arduino-builder \
   -compile \
   -hardware $curr/arduino/hardware \
+  -hardware ~/.arduino15/packages \
   -tools $curr/arduino/hardware/tools \
   -tools $curr/arduino/tools-builder \
   -libraries $curr/lib \

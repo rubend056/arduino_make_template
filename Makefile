@@ -35,6 +35,8 @@
 
 # The default project to use
 ifeq ($(PRJ),)
+$(warning Using template as PRJ)
+# $(error Need to define PRJ variable)
 PRJ=template
 endif
 
@@ -49,25 +51,57 @@ endif
 
 # The MCU to pass on to avrdude
 ifeq ($(MCU),)
-ifeq ($(BOARD),$(filter samn uno,$(BOARD)))
-	MCU = m328p # The board the avrdude will be programming
-	PRG_SKETCH = arduino
+ifeq ($(BOARD),$(filter samn uno factory328,$(BOARD)))
+# The board the avrdude will be programming
+	MCU=m328p
+	ARCH=avr
+	PROGRAMMER_SERIAL=arduino
 else ifeq ($(BOARD),$(filter samnhq mega,$(BOARD)))
-	MCU = m2560 # The board the avrdude will be programming	
-	PRG_SKETCH = wiring
+# The board the avrdude will be programming	
+	MCU=m2560
+	ARCH=avr
+	PROGRAMMER_SERIAL=wiring
 else
 $(error We need a valid BOARD variable)
 endif
 endif
 
-FQBN = arduino:avr:$(BOARD) # So, vendor_name:architecture:boards.txt entry,
+
+ifeq ($(FQBN),)
+ifeq ($(strip $(ARCH)),)
+$(error ARCH not set)
+endif
+FQBN = arduino:$(ARCH):$(BOARD) # So, vendor_name:architecture:boards.txt entry,
+endif
+$(info FQBN is $(FQBN))
+
 
 export PWD = $(shell pwd)
 AVRDUDE = ./arduino/hardware/tools/avr/bin/avrdude -v -v -p $(MCU) -C ./arduino/hardware/tools/avr/etc/avrdude.conf
 
 
 
+ifeq ($(BOARD_TYPE),)
 
+ifeq ($(BOARD),$(filter uno,$(BOARD)))
+BOARD_TYPE=1
+$(info BOARD_TYPE set to 1(UNO))
+# else ifeq ($(BOARD),$(filter samn,$(BOARD)))
+# BOARD_TYPE=0
+# $(info BOARD_TYPE set to 0(SAMN))
+else
+BOARD_TYPE=0
+$(info BOARD_TYPE set to 0(SAMN))
+endif
+
+else
+$(info BOARD_TYPE set to $(BOARD_TYPE))
+endif
+
+ifeq ($(BOARD_VERSION),)
+BOARD_VERSION=7
+endif
+$(info BOARD_VERSION set to $(BOARD_VERSION))
 
 
 ifeq ($(PORT),)
@@ -123,14 +157,30 @@ V_EFU := $(shell echo 'obase=16;ibase=2;$(EFU)'|bc)
 #///////////////////////////////////
 
 # EEPROM Address ***************
+ifeq ($(strip $(NID)),)
+NID0=FF
+NID1=FF
+$(info NID(Node ID) set to FFFF)
+$(info If you want your own, set NID to an octal, ex: 01 would be node 1)
+else
+$(info NID(Node ID) is $(NID), should be octal)
+NIDH:=$(shell echo 'obase=16;ibase=8;$(NID)'|bc)# Converts the octal to hex
+
+# NID0:=$(shell NIDH=$(NIDH) && echo $${NIDH: -2})# Last two characters
+NID0:=$(shell NIDH=$(NIDH) && L=$${\#NIDH} && echo $${NIDH: $$(($$L<2? -$$L: -2))})# Last two characters
+NID1:=$(shell NIDH=$(NIDH) && L=$${\#NIDH} && echo $${NIDH: $$(($$L<4? -$$L: -4)): $$(($$L-2>2? 2: $$L-2))})# The two before that
+
 ifeq ($(NID0),)
-# $(warning NODE_ID0 defaulting to 01)
-NID0=01
+NID0=00
 endif
 ifeq ($(NID1),)
-# $(warning NODE_ID1 defaulting to 00)
 NID1=00
 endif
+
+endif
+
+
+
 FA=0x30,0x30,0x30
 NA=0x00,0x$(NID1),0x$(NID0)
 ifeq ($(PRJ), flasher)
@@ -159,14 +209,14 @@ flash_remote: build
 
 # BUILD TARGETS **********************
 mkbdir:
-	mkdir -p $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR)
 build: mkbdir
 ifeq ($(PRJ),optiboot)
-	cd $(SRC_DIR) && make samn LED_START_FLASHES=0 RADIO_UART=1 FORCE_WATCHDOG=1 SUPPORT_EEPROM=1 LED=D5
-	cp -f $(strip $(SRC_DIR))/optiboot_samn.hex $(SRCH)
+	@cd $(SRC_DIR) && make samn LED_START_FLASHES=0 RADIO_UART=1 FORCE_WATCHDOG=1 SUPPORT_EEPROM=1 LED=D5
+	@cp -f $(strip $(SRC_DIR))/optiboot_samn.hex $(SRCH)
 else
-	./arduino-builder.sh $(FQBN) $(strip $(SRC_DIR))/$(SRCF) $(BUILD_DIR) WATER
-	cp -f $(strip $(BUILD_DIR))/$(SRCF).hex $(SRCH)
+	@./arduino-builder.sh $(FQBN) $(strip $(SRC_DIR))/$(SRCF) $(BUILD_DIR) $(BOARD_TYPE) $(BOARD_VERSION)
+	@cp -f $(strip $(BUILD_DIR))/$(SRCF).hex $(SRCH)
 endif
 
 #////////////////////////////////////
