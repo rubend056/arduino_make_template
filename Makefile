@@ -66,6 +66,8 @@ $(error We need a valid BOARD variable)
 endif
 endif
 
+$(info MCU is $(MCU))
+
 
 ifeq ($(FQBN),)
 ifeq ($(strip $(ARCH)),)
@@ -90,18 +92,23 @@ $(info BOARD_TYPE set to 1(UNO))
 # BOARD_TYPE=0
 # $(info BOARD_TYPE set to 0(SAMN))
 else
-BOARD_TYPE=0
-$(info BOARD_TYPE set to 0(SAMN))
+BOARD_TYPE=1
+$(info BOARD_TYPE set to 1(UNO))
+# BOARD_TYPE=0
+# $(info BOARD_TYPE set to 0(SAMN))
 endif
 
 else
 $(info BOARD_TYPE set to $(BOARD_TYPE))
 endif
 
+
 ifeq ($(BOARD_VERSION),)
-BOARD_VERSION=7
+BOARD_VERSION=0
 endif
 $(info BOARD_VERSION set to $(BOARD_VERSION))
+
+
 
 
 ifeq ($(PORT),)
@@ -135,16 +142,16 @@ LFU := 11111111
 HFU := 11011000
 EFU := 11111101
 
-else ifeq ($(BOARD), samn)
-# SAMN
-LFU := 10111111 #Don't divide clock | Enable clock output | Use Low power Crystal oscillator
-HFU := 11010000 #Preserve EEPROM, call bootloader on start
-EFU := 11111101 #Enable BOD, V min 1.7, typ 1.8, max 2.0
-else ifeq ($(BOARD), samnhq)
-# SAMN HQ
-LFU := 11111111 
-HFU := 11011000 
-EFU := 11111101 
+# else ifeq ($(BOARD), samn)
+# # SAMN
+# LFU := 10111111 #Don't divide clock | Enable clock output | Use Low power Crystal oscillator
+# HFU := 11010000 #Preserve EEPROM, call bootloader on start
+# EFU := 11111101 #Enable BOD, V min 1.7, typ 1.8, max 2.0
+# else ifeq ($(BOARD), samnhq)
+# # SAMN HQ
+# LFU := 11111111 
+# HFU := 11011000 
+# EFU := 11111101 
 
 else
 $(error No board selected)
@@ -157,37 +164,37 @@ V_EFU := $(shell echo 'obase=16;ibase=2;$(EFU)'|bc)
 #///////////////////////////////////
 
 # EEPROM Address ***************
-ifeq ($(strip $(NID)),)
-NID0=FF
-NID1=FF
-$(info NID(Node ID) set to FFFF)
-$(info If you want your own, set NID to an octal, ex: 01 would be node 1)
-else
-$(info NID(Node ID) is $(NID), should be octal)
-NIDH:=$(shell echo 'obase=16;ibase=8;$(NID)'|bc)# Converts the octal to hex
+# ifeq ($(strip $(NID)),)
+# NID0=FF
+# NID1=FF
+# $(info NID(Node ID) set to FFFF)
+# $(info If you want your own, set NID to an octal, ex: 01 would be node 1)
+# else
+# $(info NID(Node ID) is $(NID), should be octal)
+# NIDH:=$(shell echo 'obase=16;ibase=8;$(NID)'|bc)# Converts the octal to hex
 
-# NID0:=$(shell NIDH=$(NIDH) && echo $${NIDH: -2})# Last two characters
-NID0:=$(shell NIDH=$(NIDH) && L=$${\#NIDH} && echo $${NIDH: $$(($$L<2? -$$L: -2))})# Last two characters
-NID1:=$(shell NIDH=$(NIDH) && L=$${\#NIDH} && echo $${NIDH: $$(($$L<4? -$$L: -4)): $$(($$L-2>2? 2: $$L-2))})# The two before that
+# # NID0:=$(shell NIDH=$(NIDH) && echo $${NIDH: -2})# Last two characters
+# NID0:=$(shell NIDH=$(NIDH) && L=$${\#NIDH} && echo $${NIDH: $$(($$L<2? -$$L: -2))})# Last two characters
+# NID1:=$(shell NIDH=$(NIDH) && L=$${\#NIDH} && echo $${NIDH: $$(($$L<4? -$$L: -4)): $$(($$L-2>2? 2: $$L-2))})# The two before that
 
-ifeq ($(NID0),)
-NID0=00
-endif
-ifeq ($(NID1),)
-NID1=00
-endif
+# ifeq ($(NID0),)
+# NID0=00
+# endif
+# ifeq ($(NID1),)
+# NID1=00
+# endif
 
-endif
+# endif
 
 
 
-FA=0x30,0x30,0x30
-NA=0x00,0x$(NID1),0x$(NID0)
-ifeq ($(PRJ), flasher)
-EEPROM = $(FA),$(NA)
-else
-EEPROM = $(NA),$(FA)
-endif
+# FA=0x30,0x30,0x30
+# NA=0x00,0x$(NID1),0x$(NID0)
+# ifeq ($(PRJ), flasher)
+# EEPROM = $(FA),$(NA)
+# else
+# EEPROM = $(NA),$(FA)
+# endif
 # ///////////////////////////////
 
 
@@ -203,8 +210,8 @@ flash_programmer: build
 	$(AVRDUDE) -c $(PRG) -U flash:w:$(SRCH):i
 flash_arduino: build
 	$(AVRDUDE) -c $(PRG_SKETCH) -P $(PORT) -b 115200 -D -U flash:w:$(SRCH):i
-flash_remote: build
-	$(AVRDUDE) -b 115200 -B 3 -V -c $(PRG_SKETCH) -P $(PORT) -U flash:w:$(SRCH):i
+# flash_remote: build
+# 	$(AVRDUDE) -b 115200 -B 3 -V -c $(PRG_SKETCH) -P $(PORT) -U flash:w:$(SRCH):i
 #///////////////////////////////
 
 # BUILD TARGETS **********************
@@ -257,15 +264,3 @@ eeprom_read:
 	$(AVRDUDE) -c usbasp -U eeprom:r:ee.txt:h
 	cat ee.txt
 # ///////////////////////
-
-
-
-init_sensor:
-	make PRJ=samn fuse
-	make PRJ=optiboot flash_programmer
-	make PRJ=samn eeprom
-
-init_flasher:
-	make BOARD=uno PRJ=flasher fuse
-	# make BOARD=uno PRJ=flasher flash_programmer
-	make BOARD=uno PRJ=flasher eeprom
