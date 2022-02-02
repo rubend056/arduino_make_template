@@ -1,0 +1,2 @@
+arduino-cli compile -b MicroCore:avr:attiny13:clock=1M2 ./src/template/main.cpp --build-cache-path `pwd`/build --build-path `pwd`/built
+

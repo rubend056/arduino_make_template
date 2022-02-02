@@ -15,6 +15,11 @@ void setup(){
 }
 
 void loop(){
+	
 	TOG_PORT(B,0);
+	
+	// if(analogRead(2))SET_PORT(B,0);
+	// else CLR_PORT(B,0);
+	
 	delay(1000);
 }

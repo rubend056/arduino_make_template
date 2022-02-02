@@ -1,5 +1,9 @@
 build
 ee.txt
 build*
+built*
+
+*.bin
+*.elf
 *.hex
 *.sublime*
